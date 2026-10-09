@@ -1,0 +1,199 @@
+/* ============ 全局评论组件（vanilla，无框架/无 CDN） ============ */
+.gc-fab {
+  position: fixed; bottom: 90px; right: 24px; z-index: 50;
+  display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+  border-radius: 999px; background: #fff; border: 1px solid #e8e8ef;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); color: #1f2329;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: box-shadow .2s, transform .2s, opacity .2s;
+}
+/* 评论区已滚入视口 → 淡出，把底部让给滚动条 */
+.gc-fab.gc-fab-hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
+.gc-fab:hover { box-shadow: 0 8px 24px rgba(0,0,0,.16); transform: translateY(-2px); }
+.gc-fab:active { transform: translateY(0); }
+.gc-fab .gc-badge {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: #3370ff; color: #fff; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* .ed-main 是 flex 列容器，评论区作为 flex item 默认 flex-shrink:1，
+   评论变多时可能被压缩，导致滚到底部时高度异常、滚动发涩。这里禁止收缩。 */
+#gc-root { flex: 0 0 auto; }
+.gc-section {
+  flex: 0 0 auto; scroll-margin-top: 12px;
+  max-width: 768px; margin: 40px auto 0; padding: 24px 24px 0;
+  border-top: 1px solid #eceef1;
+}
+.gc-section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.gc-section-head h2 { font-size: 16px; font-weight: 600; color: #1f2329; margin: 0; }
+.gc-section-head .gc-count { font-size: 14px; color: #aaa; }
+
+.gc-composer-box {
+  margin-bottom: 24px; border: 1px solid #e8e8ef; border-radius: 16px;
+  background: #fff; padding: 16px;
+}
+.gc-textarea {
+  width: 100%; resize: none; border: none; outline: none;
+  font-size: 14px; line-height: 1.7; color: #1f2329;
+  font-family: inherit; min-height: 64px;
+}
+.gc-textarea::placeholder { color: #bbb; }
+.gc-composer-box { position: relative; }
+.gc-composer-box.gc-composer-inline { margin-bottom: 0; padding: 12px; background: #fafbfc; box-shadow: none; }
+.gc-composer-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.gc-composer-left { display: flex; align-items: center; gap: 12px; }
+.gc-lock-btn {
+  display: flex; align-items: center; gap: 4px; font-size: 12px;
+  padding: 4px 8px; border-radius: 6px; cursor: pointer; border: none; background: transparent;
+  color: #aaa; transition: all .15s;
+}
+.gc-lock-btn:hover { color: #666; background: #f2f3f5; }
+.gc-lock-btn.active { color: #3370ff; background: #eef4ff; }
+.gc-simfail {
+  font-size: 11px; cursor: pointer; border: none; background: transparent;
+  color: #ccc; transition: color .15s;
+}
+.gc-simfail:hover { color: #999; }
+.gc-simfail.active { color: #f56565; }
+.gc-send-btn {
+  padding: 6px 16px; border-radius: 8px; border: none; cursor: pointer;
+  background: #3370ff; color: #fff; font-size: 14px; font-weight: 500; transition: background .15s;
+}
+.gc-send-btn:hover { background: #2860e0; }
+.gc-send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.gc-mention-pop {
+  position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; width: 208px;
+  background: #fff; border: 1px solid #e8e8ef; border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 4px; z-index: 30;
+}
+.gc-mention-pop .gc-pop-title { padding: 4px 8px; font-size: 11px; color: #ccc; }
+.gc-mention-pop button {
+  width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px;
+  border: none; background: transparent; cursor: pointer; text-align: left; border-radius: 8px;
+}
+.gc-mention-pop button:hover { background: #f5f6f8; }
+.gc-mention-pop .gc-mname { font-size: 14px; color: #444; }
+
+.gc-avatar {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 500; flex-shrink: 0; user-select: none;
+}
+
+/* 评论列表：超过一定高度出现滚动条（PRD：超过 10 条出现滚动条，支持上下滚动） */
+.gc-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; max-height: 560px; overflow-y: auto; }
+.gc-card {
+  position: relative; display: flex; gap: 12px; border: 1px solid #eceef1;
+  border-radius: 14px; background: #fff; padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+}
+.gc-card.private { background: #f8f8fa; border-color: #e8e8ef; }
+.gc-card.resolved { opacity: .7; }
+/* 从文档开头跳过来时，落点卡片闪烁一下 */
+@keyframes gcFlash {
+  0%, 100% { box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  25%, 60% { box-shadow: 0 0 0 3px rgba(51,112,255,.30); }
+}
+.gc-card.gc-flash { animation: gcFlash 1.5s ease; }
+/* 新评论淡入（PRD：新评论以 0.3s 淡入动画插入列表顶部） */
+@keyframes gcFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.gc-card.gc-fade-in { animation: gcFadeIn .3s ease; }
+.gc-card-body { flex: 1; min-width: 0; }
+.gc-card-head { display: flex; align-items: center; gap: 8px; }
+.gc-name { font-size: 14px; font-weight: 600; color: #1f2329; }
+.gc-badge-private {
+  font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #eceef1; color: #888;
+}
+.gc-time { font-size: 12px; color: #aaa; }
+.gc-edited { font-size: 11px; color: #ccc; }
+.gc-more-btn {
+  margin-left: auto; padding: 4px; border: none; background: transparent; cursor: pointer;
+  color: #ccc; border-radius: 6px; line-height: 0;
+}
+.gc-more-btn:hover { color: #888; background: #f2f3f5; }
+
+.gc-content { margin-top: 4px; font-size: 14px; color: #444; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.gc-mention { color: #3370ff; background: rgba(51,112,255,.10); border-radius: 4px; padding: 0 2px; font-weight: 500; }
+
+.gc-card-actions { margin-top: 8px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.gc-reply-link { font-size: 12px; color: #aaa; cursor: pointer; border: none; background: transparent; padding: 0; }
+.gc-reply-link:hover { color: #3370ff; }
+
+/* 操作栏按钮：点赞 / 回复 / 编辑 / 删除（与右侧局部评论一致） */
+.gc-act {
+  display: inline-flex; align-items: center; gap: 4px; line-height: 1;
+  font-size: 12px; color: #8a8f99; background: transparent; border: none;
+  cursor: pointer; padding: 4px 7px; border-radius: 6px;
+  transition: color .15s, background .15s;
+}
+.gc-act:hover { color: #3370ff; background: #f3f7ff; }
+.gc-act.danger:hover { color: #f56565; background: #fff1f1; }
+.gc-act.like.liked { color: #ff4757; }
+.gc-act.like.liked svg { fill: currentColor; }
+.gc-act.like.liked:hover { color: #ff4757; background: #fff1f1; }
+.gc-act .gc-like-count { font-size: 11px; }
+
+/* 点赞人：与局部评论一致，展示在评论内容下方 */
+.gc-likes { margin-top: 6px; display: flex; align-items: center; gap: 5px; font-size: 12px; color: #8a8f99; }
+.gc-likes .gc-like-ico { font-size: 12px; line-height: 1; }
+
+.gc-replies { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; border-left: 2px solid #eceef1; padding-left: 12px; }
+.gc-reply { display: flex; gap: 10px; }
+.gc-reply .gc-name { font-size: 13px; }
+
+/* 编辑态：文本域 + 操作按钮 */
+.gc-edit-zone { margin-top: 8px; }
+.gc-edit-input {
+  width: 100%; resize: none; border: 1px solid #e8e8ef; border-radius: 10px;
+  padding: 8px 10px; font-size: 14px; line-height: 1.6; color: #1f2329;
+  font-family: inherit; outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.gc-edit-input:focus { border-color: #3370ff; box-shadow: 0 0 0 3px rgba(51,112,255,.12); }
+.gc-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.gc-btn-ghost {
+  padding: 5px 14px; border-radius: 8px; border: 1px solid #e8e8ef; background: #fff;
+  color: #555; font-size: 13px; cursor: pointer; transition: background .15s;
+}
+.gc-btn-ghost:hover { background: #f5f6f8; }
+.gc-btn-primary {
+  padding: 5px 14px; border-radius: 8px; border: none; background: #3370ff;
+  color: #fff; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s;
+}
+.gc-btn-primary:hover { background: #2860e0; }
+
+.gc-menu {
+  position: absolute; right: 0; top: 100%; margin-top: 4px; width: 128px;
+  background: #fff; border: 1px solid #e8e8ef; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 4px; z-index: 30;
+}
+.gc-menu button {
+  width: 100%; text-align: left; padding: 6px 12px; border: none; background: transparent;
+  cursor: pointer; font-size: 14px; color: #555; border-radius: 6px;
+}
+.gc-menu button:hover { background: #f5f6f8; }
+.gc-menu button.danger { color: #f56565; }
+.gc-menu-mask { position: fixed; inset: 0; z-index: 20; }
+
+.gc-resolved-bar {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px;
+  background: #f8f8fa; color: #aaa; font-size: 14px; cursor: pointer; transition: background .15s;
+}
+.gc-resolved-bar:hover { background: #f0f0f2; }
+.gc-resolved-bar .gc-expand { margin-left: auto; display: flex; align-items: center; gap: 2px; font-size: 12px; }
+
+.gc-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 0; text-align: center; }
+.gc-empty svg { opacity: .5; }
+.gc-empty p { margin-top: 12px; font-size: 14px; color: #bbb; }
+
+.gc-toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 96px; z-index: 60;
+  padding: 8px 16px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.16);
+  font-size: 14px; color: #fff; display: flex; align-items: center; gap: 6px;
+  animation: gcToastIn .18s ease-out;
+}
+.gc-toast.success { background: #333; }
+.gc-toast.error { background: #f56565; }
+@keyframes gcToastIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }

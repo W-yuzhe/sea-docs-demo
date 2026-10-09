@@ -1,0 +1,131 @@
+/* ===== 历史记录 · 飞书云文档式（右侧抽屉时间轴 + 顶栏历史版本横幅） ===== */
+.history-drawer {
+  position: fixed; top: 57px; right: 0; bottom: 0; width: 340px;
+  background: #fff; border-left: 1px solid #ececf2;
+  box-shadow: -8px 0 24px rgba(0,0,0,.06);
+  z-index: 170; display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .2s ease; visibility: hidden;
+}
+.history-drawer.open { transform: translateX(0); visibility: visible; }
+
+.hd-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid #f0f1f5;
+}
+.hd-title { font-size: 15px; font-weight: 600; color: #1f2329; }
+.hd-close {
+  border: none; background: none; font-size: 16px; color: #8a8f99;
+  cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px;
+}
+.hd-close:hover { color: #1f2329; background: #f2f3f7; }
+
+.hd-tabs { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid #f0f1f5; }
+.hd-tab {
+  border: none; background: none; padding: 6px 10px; font-size: 13px;
+  color: #5a5f6a; cursor: pointer; border-radius: 6px;
+}
+.hd-tab.active { background: #f0f1fb; color: #5b5fc7; font-weight: 600; }
+
+.hd-body { flex: 1; overflow-y: auto; padding: 6px 10px 16px; }
+
+/* ----- 时间轴（飞书式：左侧竖线 + 圆点 + 按日分组） ----- */
+.hd-timeline { position: relative; padding: 4px 0; }
+.hd-timeline::before {
+  content: ''; position: absolute; left: 13px; top: 18px; bottom: 18px;
+  width: 2px; background: #eceef3; border-radius: 1px;
+}
+.hd-entry {
+  position: relative; display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px 8px 24px; margin: 2px 0 2px 4px; border-radius: 8px; cursor: pointer;
+}
+.hd-entry:hover { background: #f7f8fb; }
+.hd-entry.hd-active { background: #f0f1fb; }
+.hd-dot {
+  position: absolute; left: 7px; top: 50%; transform: translateY(-50%);
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #fff; border: 2px solid #c9cdd8; box-sizing: content-box;
+}
+.hd-entry.hd-active .hd-dot { border-color: #5b5fc7; }
+.hd-now .hd-dot { border-color: #3ecf8e; }
+.hd-now .hd-entry-time { font-weight: 600; }
+.hd-entry-time { font-size: 13px; color: #1f2329; }
+.hd-entry-user { font-size: 12px; color: #9aa0aa; }
+.hd-date { font-size: 12px; color: #9aa0aa; padding: 12px 10px 4px 28px; }
+.hd-empty { color: #9aa0aa; font-size: 13px; text-align: center; padding: 24px 12px; }
+
+/* ----- 操作轨迹 ----- */
+.hd-list { display: flex; flex-direction: column; }
+.hd-action-item { padding: 8px 10px; border-bottom: 1px solid #f5f6f8; font-size: 13px; color: #3a3f4a; }
+.hd-action-item .h-time { font-size: 11px; color: #9aa0aa; margin-top: 2px; }
+
+/* ----- 顶栏历史版本横幅（飞书式，整体覆盖替换顶部工具栏） ----- */
+.hd-banner {
+  position: fixed; top: 0; left: 0; right: 0; height: 57px;
+  background: #fff; border-bottom: 1px solid #e8e8ef;
+  z-index: 250; display: none; align-items: center; justify-content: space-between;
+  padding: 0 16px; box-shadow: 0 1px 6px rgba(0,0,0,.04);
+}
+.hd-banner.show { display: flex; }
+.hd-banner-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.hd-banner-back {
+  border: none; background: none; color: #5b5fc7; font-size: 13px;
+  cursor: pointer; padding: 6px 10px; border-radius: 6px; white-space: nowrap;
+}
+.hd-banner-back:hover { background: #f0f1fb; }
+.hd-banner-info {
+  font-size: 13px; color: #1f2329;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hd-banner-restore {
+  border: none; background: #5b5fc7; color: #fff; font-size: 13px;
+  padding: 7px 16px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+}
+.hd-banner-restore:hover { background: #4a4eb3; }
+
+/* ----- 只读预览态正文 ----- */
+#edBody.hd-readonly { user-select: text; }
+
+/* ----- 更改高亮（预览态，对标飞书：块级 diff + 编辑者徽章） ----- */
+.hd-chg {
+  position: relative; border-radius: 6px; margin: 8px 0 2px; padding: 4px 6px;
+}
+.hd-chg-add { background: #e9f8ef; }
+.hd-chg-mod { background: #f0f1fb; }
+.hd-chg-del { background: #fdeeee; color: #9aa0aa; text-decoration: line-through; }
+.hd-chip {
+  position: absolute; top: -9px; left: 8px; z-index: 2;
+  font-size: 11px; line-height: 1; color: #fff;
+  padding: 3px 7px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+.hd-chg-add .hd-chip { background: #3ecf8e; }
+.hd-chg-mod .hd-chip { background: #7b86f2; }
+.hd-chg-del .hd-chip { background: #e05360; }
+
+/* ----- 横幅右侧：编辑记录导航 + 还原 ----- */
+.hd-banner-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.hd-nav-info { font-size: 12px; color: #8a8f99; white-space: nowrap; }
+.hd-nav-btn {
+  border: 1px solid #e0e3ec; background: #fff; color: #5a5f6a; font-size: 12px;
+  padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+}
+.hd-nav-btn:disabled { opacity: .45; cursor: not-allowed; }
+.hd-nav-btn:not(:disabled):hover { border-color: #5b5fc7; color: #5b5fc7; }
+
+/* ----- 抽屉底部：显示更改开关 ----- */
+.hd-foot { border-top: 1px solid #f0f1f5; padding: 10px 14px; }
+.hd-toggle {
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+  color: #5a5f6a; cursor: pointer; user-select: none;
+}
+.hd-toggle input { display: none; }
+.hd-switch {
+  width: 32px; height: 18px; border-radius: 9px; background: #d4d8e0;
+  position: relative; transition: background .15s; flex: 0 0 auto;
+}
+.hd-switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: #fff; transition: left .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.hd-toggle input:checked + .hd-switch { background: #5b5fc7; }
+.hd-toggle input:checked + .hd-switch::after { left: 16px; }

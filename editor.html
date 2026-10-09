@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>未命名文档</title>
+<link rel="stylesheet" href="common.css?v=2026091607">
+<link rel="stylesheet" href="editor.css?v=2026100801cbdcb">
+<!-- 全局评论组件（vanilla，无框架/无 CDN，复用 Store 持久化） -->
+<link rel="stylesheet" href="global-comments.css?v=2026091901">
+<!-- 下载为 / 导出 组件（vanilla，无框架/无 CDN） -->
+<link rel="stylesheet" href="download.css?v=2026091606">
+<!-- 历史记录 · 内容时光机（vanilla，复用 Store 持久化） -->
+<link rel="stylesheet" href="history-time.css?v=2026091619">
+</head>
+<body>
+<div class="ed-wrap">
+  <header class="ed-top">
+    <div class="ed-left">
+      <button class="ed-icon-btn" id="menuBtn" data-tooltip="菜单" title="菜单"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <button class="ed-icon-btn" id="homeBtn" data-tooltip="主页" title="主页"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/></svg></button>
+      <div class="ed-vdiv"></div>
+      <div>
+        <div class="ed-crumb-line">
+          <span class="crumb-item crumb-user" id="crumbUser" data-tooltip="Wang">Wang</span><span class="crumb-sep">&gt;</span>
+          <span class="crumb-item crumb-folder" id="crumbFolder" data-tooltip="我的文档库">我的文档库</span><span class="crumb-sep">&gt;</span>
+          <span class="crumb-icon" id="crumbIcon"></span><span class="crumb-title" id="crumbTitle" data-tooltip="重命名">未命名文档</span>
+          <button class="pin-btn" id="pinBtn" data-tooltip="添加到置顶" title="添加到置顶"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3l5 5-4.5 1.5-2.5 2.5-.5 5-2.5-2.5-4 4-1-1 4-4L7.5 11l5-.5 2.5-2.5z"/></svg></button>
+        </div>
+        <div class="ed-crumb-sub" id="crumbSub">最近修改：刚刚</div>
+      </div>
+    </div>
+    <div class="ed-right">
+      <button class="ed-icon-btn" id="bellBtn" data-tooltip="消息提醒" title="消息提醒"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></button>
+      <button class="ed-icon-btn" id="searchBtn" data-tooltip="全局搜索" title="全局搜索"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+      <button class="ed-icon-btn" id="moreBtn" data-tooltip="更多操作" title="更多操作"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+      <div class="ed-avatar" id="avatarBtn" title="Wang">W</div>
+    </div>
+  </header>
+
+  <!-- 用户头像下拉菜单 -->
+  <div class="avatar-menu" id="avatarMenu">
+    <div class="am-user">
+      <div class="am-avatar">W</div>
+      <div class="am-user-info">
+        <div class="am-name">Wang</div>
+        <div class="am-company">字节跳动 · 产品团队</div>
+      </div>
+    </div>
+    <div class="am-group">
+      <div class="am-item" data-am="appearance"><span class="am-ic">🎨</span><span>外观</span><span class="am-arrow">›</span></div>
+      <div class="am-item" data-am="language"><span class="am-ic">🌐</span><span>语言</span><span class="am-arrow">›</span></div>
+      <div class="am-item" data-am="switch"><span class="am-ic">👥</span><span>切换账号</span><span class="am-arrow">›</span></div>
+      <div class="am-item" data-am="admin"><span class="am-ic">🛠️</span><span>后台管理</span><span class="am-arrow">›</span></div>
+    </div>
+    <div class="am-divider"></div>
+    <div class="am-group">
+      <div class="am-item" data-am="settings"><span class="am-ic">⚙️</span><span>设置</span></div>
+      <div class="am-item" data-am="help"><span class="am-ic">❓</span><span>帮助</span></div>
+      <div class="am-item am-danger" data-am="logout"><span class="am-ic">🚪</span><span>退出登录</span></div>
+    </div>
+  </div>
+
+  <!-- 悬浮评论入口：脱离右上角工具栏，固定于页面右上角（图标不变） -->
+  <button class="ed-comment-fab" id="commentBtn" title="划词评论" aria-label="划词评论">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </button>
+
+  <aside class="ed-drawer" id="drawer"></aside>
+
+  <!-- 划词评论面板 -->
+  <aside class="comment-panel" id="commentPanel">
+    <div class="cp-head">
+      <span class="cp-title" id="cpTitle">评论</span>
+      <button class="cp-expand" id="cpExpand" title="关闭">≫</button>
+    </div>
+    <div class="cp-body" id="cpBody">
+      <!-- 局部评论（划词评论）挂载点 -->
+      <div id="localCommentsRoot"></div>
+    </div>
+  </aside>
+
+  <main class="ed-main" id="edMain">
+    <!-- 封面：通栏铺满页面宽度（对标飞书），固定高度、图片按比例裁切 -->
+    <div class="ed-cover" id="edCover" style="display:none">
+      <div class="ed-cover-img" id="edCoverImg"></div>
+      <button class="ed-cover-edit-btn" id="edCoverEditBtn" title="编辑封面">编辑封面</button>
+      <div class="ed-cover-menu" id="edCoverMenu" style="display:none">
+        <div class="cv-menu-item" data-cv="pick">选择图片</div>
+        <div class="cv-menu-item danger" data-cv="remove">删除封面</div>
+      </div>
+    </div>
+    <div class="ed-doc">
+      <div class="ed-title-zone" id="titleZone">
+        <button class="ed-cover-btn ghost" id="addIconBtn" title="添加图标">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          添加图标
+        </button>
+        <button class="ed-cover-btn" id="addCoverBtn" title="添加封面">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7l4-4h10l4 4v10l-4 4H7l-4-4z"/><circle cx="9" cy="9" r="2"/></svg>
+          添加封面
+        </button>
+      </div>
+      <div class="ed-title-wrap">
+        <div class="ed-title-icon" id="titleIcon"></div>
+        <input class="ed-title" id="titleInput" placeholder="请输入标题" maxlength="60">
+      </div>
+      <div class="ed-meta"><span class="ed-avatar-sm">W</span><span>Wang</span><span class="ed-meta-div"></span><span>今天修改</span></div>
+      <div class="ed-body" id="edBody" contenteditable="true" data-placeholder="按 / 插入内容"></div>
+    </div>
+    <!-- 行开头 H+网格 入口（hover 行时浮出在行开头处，点击弹标题/正文弹窗） -->
+    <div class="row-type-handle" id="rowTypeHandle" style="display:none" title="标题/正文">
+      <span class="lt-type-h">H</span>
+      <span class="lt-type-grid">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </span>
+    </div>
+
+    <!-- 行操作主菜单（点击 H+网格 入口后弹出） -->
+    <div class="row-menu" id="rowMenu" style="display:none">
+      <button class="rm-btn" data-rm="type" id="rmTypeBtn" title="标题/正文">
+        <span class="rm-type-glyph">
+          <span class="rm-type-h">H</span>
+          <span class="rm-type-grid">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+          </span>
+        </span>
+        <span>标题/正文</span>
+      </button>
+      <button class="rm-btn" data-rm="color" id="rmColorBtn" title="颜色">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 2c-1.5 0-2.7.5-3.6 1.4-.9.9-1.4 2.1-1.4 3.6 0 1.2.4 2.2 1.2 3.1L6 20.5C5.4 21.1 5 21.9 5 22.7c0 1.7 1.3 3 3 3 .8 0 1.6-.4 2.2-1L16.5 18c.9.8 1.9 1.2 3.1 1.2 1.5 0 2.7-.5 3.6-1.4.9-.9 1.4-2.1 1.4-3.6 0-1.5-.5-2.7-1.4-3.6L16 4.6C15.1 3 14.5 2 16 2z"/></svg>
+        <span>颜色</span>
+      </button>
+      <button class="rm-btn" data-rm="cut" title="剪切">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+        <span>剪切</span>
+        <kbd class="rm-kbd">Ctrl+X</kbd>
+      </button>
+      <button class="rm-btn" data-rm="copy" title="复制">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        <span>复制</span>
+        <kbd class="rm-kbd">Ctrl+C</kbd>
+      </button>
+      <button class="rm-btn" data-rm="del" title="删除">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        <span>删除</span>
+        <kbd class="rm-kbd">Del</kbd>
+      </button>
+    </div>
+
+    <!-- 标题/正文二级浮层（顶部把手可拖动） -->
+    <div class="lt-pop type-pop" id="typePop" style="display:none">
+      <div class="lt-drag" id="typePopDrag" title="按住拖动">
+        <span class="lt-drag-grip"></span>
+        <span class="lt-drag-label">标题 / 正文</span>
+      </div>
+      <button data-type="body" class="tp-btn"><span class="tp-letter">T</span>正文</button>
+      <button data-type="h1" class="tp-btn"><span class="tp-letter">H1</span>一级标题</button>
+      <button data-type="h2" class="tp-btn"><span class="tp-letter">H2</span>二级标题</button>
+      <button data-type="h3" class="tp-btn"><span class="tp-letter">H3</span>三级标题</button>
+    </div>
+
+    <!-- 颜色二级浮层（顶部标题条可拖动） -->
+    <div class="lt-pop color-pop" id="colorPop" style="display:none">
+      <div class="lt-drag" id="colorPopDrag" title="按住拖动">
+        <span class="lt-drag-grip"></span>
+        <span class="lt-drag-label">颜色</span>
+      </div>
+      <div class="cp-label">字体颜色</div>
+      <div class="cp-row" id="cpFont" data-role="font"></div>
+      <div class="cp-label">背景颜色</div>
+      <div class="cp-row" id="cpBg" data-role="bg"></div>
+      <button class="cp-reset" id="cpReset">恢复默认</button>
+    </div>
+
+    <!-- 选中文本浮动工具条（对标飞书文档） -->
+    <div class="sel-bar" id="selBar" style="display:none">
+      <button class="sb-btn" data-sb="title" id="sbTitleBtn" title="标题/正文" aria-haspopup="true" aria-expanded="false" aria-label="标题/正文">
+        <span class="sb-t">T</span>
+        <svg class="sb-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button class="sb-btn" data-sb="align" id="sbAlignBtn" title="对齐方式" aria-haspopup="true" aria-expanded="false" aria-label="对齐方式">
+        <span id="sbAlignIcon"></span>
+        <svg class="sb-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <span class="sb-sep"></span>
+      <button class="sb-btn sb-fmt" data-sb="bold" title="加粗" aria-pressed="false"><span class="sb-b">B</span></button>
+      <button class="sb-btn sb-fmt" data-sb="strike" title="删除线" aria-pressed="false"><span class="sb-s">S</span></button>
+      <button class="sb-btn sb-fmt" data-sb="underline" title="下划线" aria-pressed="false"><span class="sb-u">U</span></button>
+      <button class="sb-btn sb-fmt" data-sb="italic" title="斜体" aria-pressed="false"><span class="sb-i">I</span></button>
+      <span class="sb-sep"></span>
+      <button class="sb-btn" data-sb="link" id="sbLinkBtn" title="插入超链接" aria-label="插入超链接" aria-haspopup="true" aria-expanded="false">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 4.5l5 5L9 20H4v-5L14.5 4.5z"/>
+          <path d="M13 6l5 5"/>
+        </svg>
+        <circle cx="19" cy="5" r="3" fill="#f5c518" stroke="none"/>
+      </button>
+      <button class="sb-btn" data-sb="color" id="sbColorBtn" title="颜色" aria-haspopup="true" aria-expanded="false" aria-label="颜色">
+        <span class="sb-a">A</span>
+        <svg class="sb-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button class="sb-btn" data-sb="comment" id="sbCommentBtn" title="评论" aria-label="评论">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </button>
+    </div>
+
+    <!-- 配置链接弹窗（PRD 图047/048：默认置灰 → 输入合法后按钮变蓝） -->
+    <div class="lt-pop link-pop" id="linkPop" style="display:none" role="dialog" aria-modal="true" aria-label="超链接配置对话框">
+      <div class="lp-title">链接</div>
+      <input class="lp-input" id="linkInput" placeholder="请输入网址" autocomplete="off" spellcheck="false" aria-describedby="linkErr">
+      <div class="lp-err" id="linkErr" style="display:none" role="alert">请输入有效网址</div>
+      <div class="lp-actions">
+        <button class="lp-cancel" id="linkCancel">取消</button>
+        <button class="lp-ok" id="linkOk" disabled aria-busy="false">确认</button>
+      </div>
+    </div>
+
+    <!-- 已链接文字 hover 时的小工具条（PRD 6.4）：编辑 / 移出，图标按钮 -->
+    <div class="link-hover-bar" id="linkHoverBar" style="display:none">
+      <button data-lh="edit" title="编辑"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5l5 5L9 20H4v-5L14.5 4.5z"/><path d="M13 6l5 5"/></svg></button>
+      <button data-lh="remove" title="移除链接"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.84 12.61a2 2 0 0 0-2.83 0l-2.83 2.83a2 2 0 0 0 0 2.83"/><path d="M5.16 11.39a2 2 0 0 0 2.83 0l2.83-2.83a2 2 0 0 0 0-2.83"/><line x1="2" y1="2" x2="22" y2="22"/></svg></button>
+    </div>
+
+    <!-- 超链接编辑面板（PRD 图050） -->
+    <div class="lt-pop link-edit" id="linkEdit" style="display:none" role="dialog" aria-modal="true" aria-label="超链接编辑面板">
+      <div class="le-row">
+        <label class="le-label" for="linkEditText">文字</label>
+        <input class="le-input" id="linkEditText" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="le-row">
+        <label class="le-label" for="linkEditUrl">网址</label>
+        <input class="le-input" id="linkEditUrl" autocomplete="off" spellcheck="false" aria-describedby="linkEditErr">
+      </div>
+      <div class="le-err" id="linkEditErr" style="display:none" role="alert">请输入有效网址</div>
+      <div class="le-actions">
+        <button class="le-cancel" id="linkEditCancel">取消</button>
+        <button class="le-ok" id="linkEditOk">确定</button>
+      </div>
+    </div>
+
+    <!-- 对齐方式二级浮层 -->
+    <div class="lt-pop align-pop" id="alignPop" style="display:none">
+      <button class="ap-btn" data-align="left"><span class="ap-ic"></span>左对齐</button>
+      <button class="ap-btn" data-align="center"><span class="ap-ic"></span>居中</button>
+      <button class="ap-btn" data-align="right"><span class="ap-ic"></span>右对齐</button>
+    </div>
+    <div class="ed-like-wrap">
+      <button class="ed-like" id="likeBtn" data-tooltip="点赞" title="点赞"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg></button>
+      <div class="ed-like-text"><span class="line"></span>真诚点赞，手留余香<span class="line"></span></div>
+    </div>
+    <footer class="ed-footer">
+      <button class="ed-comment-btn" id="scrollToggle" data-tooltip="顶部/底部切换" title="顶部/底部切换"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></button>
+      <!-- 兼容：editor.js 第 219 行 $('sendComment').addEventListener 引用，UI 上不展示 -->
+      <button id="sendComment" style="display:none" aria-hidden="true"></button>
+    </footer>
+    <!-- 全局评论（全文评论）挂载点：文档底部全宽评论区 -->
+    <div class="gc-root" id="gcRoot"></div>
+  </main>
+</div>
+
+<!-- 更多操作弹窗 / 搜索 / 通知 / 历史 -->
+<div class="ed-pop more-menu" id="morePop"></div>
+<div class="ed-pop search-panel" id="searchPop"></div>
+<div class="ed-pop notif-pop" id="notifPop"></div>
+<div class="ed-pop history-panel" id="historyPop"></div>
+
+<!-- 重命名 + 表情/图标选择弹窗 -->
+<div class="ed-pop rename-pop" id="renamePop">
+  <div class="rn-head">
+    <div class="rn-icon" id="rnIcon"></div>
+    <input class="rn-input" id="rnInput" placeholder="请输入标题" maxlength="60">
+  </div>
+  <div class="rn-tabs">
+    <button class="rn-tab active" data-rn-tab="emoji" id="rnTabEmoji">表情符号</button>
+    <button class="rn-tab" data-rn-tab="icon" id="rnTabIcon">图标</button>
+    <button class="rn-remove" id="rnRemove" title="移除">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      移除
+    </button>
+  </div>
+  <div class="rn-search" id="rnSearchWrap">
+    <svg class="rn-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="rnSearch" placeholder="搜索" autocomplete="off">
+    <button class="rn-clear" id="rnClear">✕</button>
+  </div>
+  <div class="rn-body" id="rnBody"></div>
+  <div class="rn-cats" id="rnCats">
+    <div class="rn-random" id="rnRandom" title="随机">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="4" x2="9" y2="14"/><line x1="19" y1="14" x2="9" y2="4"/><path d="M5 20h14"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- 封面选择弹窗（官方图库 / 本地上传） -->
+<div class="cover-modal" id="coverModal">
+  <div class="cv-panel">
+    <div class="cv-tabs">
+      <button class="cv-tab active" data-tab="lib">官方图库</button>
+      <button class="cv-tab" data-tab="upload">本地上传</button>
+      <button class="cv-close" id="cvClose" title="关闭">✕</button>
+    </div>
+    <div class="cv-body" id="cvBody"></div>
+  </div>
+</div>
+
+<!-- 左侧目录栏 -->
+<div class="outline-panel" id="outlinePanel" style="display:none">
+  <div class="op-head">
+    <button class="op-toggle" id="opToggle" data-tooltip="收起目录" title="收起目录">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+    </button>
+    <span class="op-title">目录</span>
+  </div>
+  <div class="op-body" id="opBody"></div>
+</div>
+<button class="outline-burger" id="outlineBurger" data-tooltip="展开目录" title="展开目录">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<!-- 查找和替换 -->
+<div class="find-bar" id="findBar">
+  <div class="fb-tabs">
+    <button class="fb-tab active" data-fbtab="find" type="button">查找</button>
+    <button class="fb-tab" data-fbtab="replace" type="button">替换</button>
+    <button class="fb-close" id="findClose" title="关闭">✕</button>
+  </div>
+  <div class="fb-field">
+    <label class="fb-label" for="findInput">查找</label>
+    <div class="fb-input-wrap">
+      <input id="findInput" placeholder="请输入文字" autocomplete="off">
+      <span class="fb-count" id="findCount"></span>
+    </div>
+  </div>
+  <div class="fb-field fb-only-replace" id="replaceField">
+    <label class="fb-label" for="replaceInput">替换为</label>
+    <input id="replaceInput" placeholder="请输入文字" autocomplete="off">
+  </div>
+  <div class="fb-actions">
+    <button class="fb-btn fb-primary fb-only-replace" id="replaceAll">全部替换</button>
+    <button class="fb-btn fb-only-replace" id="replaceOne">替换</button>
+    <button class="fb-btn" id="findPrev">上一处</button>
+    <button class="fb-btn" id="findNext">下一处</button>
+  </div>
+</div>
+
+<script src="common.js?v=2026091422"></script>
+<script src="history.js?v=2026091422"></script>
+<script src="editor.js?v=2026100802cbbb"></script>
+<!-- 侧边栏导航（仿飞书左侧菜单，复用 Store 真实文档数据） -->
+<script src="sidebar-nav.js?v=2026092101"></script>
+<!-- 局部评论组件（划词评论，vanilla，复用 Store 持久化到 doc.comments） -->
+<script src="local-comments.js?v=2026091912"></script>
+<!-- 全局评论组件（vanilla，复用 Store 持久化） -->
+<script src="global-comments.js?v=2026091901"></script>
+<!-- 下载为 / 导出 组件（vanilla，复用 Store 持久化） -->
+<script src="download.js?v=2026091606"></script>
+<!-- 历史记录 · 内容时光机（vanilla，复用 Store 持久化） -->
+<script src="history-time.js?v=2026091619"></script>
+<!-- 实时诊断：暴露关键状态到 window.__seaDebug，方便排查「点了没反应」类问题 -->
+<script>
+window.__seaDebug = {
+  hasStore: typeof Store !== 'undefined',
+  hasUI: typeof UI !== 'undefined',
+  hasGC: typeof GlobalComments !== 'undefined',
+  hasHT: typeof HistoryTime !== 'undefined',
+  hasDL: typeof Download !== 'undefined',
+  log(msg, data) { try { console.log('[sea]', msg, data || ''); } catch (e) {} }
+};
+try { console.log('[sea] boot', window.__seaDebug); } catch (e) {}
+</script>
+</body>
+</html>
