@@ -2,7 +2,7 @@
 
 一个**可交互**的在线文档协作产品原型：文档编辑、划词评论、全局评论、版本历史、文件管理与账号体系。
 
-> 🚀 **在线体验：https://W-yuzhe.github.io/sea-docs-demo/**
+> 🚀 **在线体验：https://w-yuzhe.github.io/sea-docs-demo/**
 > 推荐 Chrome / Edge 打开，无需安装、无需登录即可体验。
 
 ---
@@ -21,7 +21,7 @@
 
 ## 怎么体验
 
-直接打开 https://W-yuzhe.github.io/sea-docs-demo/，会先进入登录页。
+直接打开 https://w-yuzhe.github.io/sea-docs-demo/，会先进入登录页。
 
 登录页右下角有一个**可拖动的「演示助手」**按钮，点开后：
 
@@ -87,4 +87,4 @@ sidebar-nav.js           侧边导航
 
 ---
 
-如果只想快速看效果：打开 https://W-yuzhe.github.io/sea-docs-demo/ → 点右下角紫色按钮 → **一键填入当前表单** → 登录。
+如果只想快速看效果：打开 https://w-yuzhe.github.io/sea-docs-demo/ → 点右下角紫色按钮 → **一键填入当前表单** → 登录。
